@@ -77,7 +77,7 @@ The first step in scraping a website is to inspect its source code in your brows
 ```{python}
 url = "https://en.wikipedia.org/w/index.php?title=World_Happiness_Report&oldid=1241093905"
 
-response = requests.get(url)
+response = requests.get(url) #stort die Website als memory hier
 response
 ```
 
@@ -101,10 +101,10 @@ soup = BeautifulSoup(html_content, 'html.parser')
 To extract headers, we can search the `soup` object for all header tags (`h1` to `h6`). Below, we loop through the results and extract the text content of each header.^[By default, the `.get_text()` methods removes leading and training whitespace from each header. If we want to be more aggressive about removing whitespace (e.g., replace double spaces with single spaces), we can set the `.get_text()` method's `strip` argument to `True`.]
 
 ```{python}
-headers = []
+headers = [] #create empty list, dann füllen wir sie
 
-for header in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']):
-    headers.append(header.get_text())
+for header in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']): #find.all = method für listen, hn= levels of headings
+    headers.append(header.get_text()) #getting headings in list, get.text=method; header is special object in soup, want to extract the text from html object (heading)
 
 headers
 ```
@@ -119,7 +119,7 @@ Similarly, we can extract all paragraphs (`<p>` tags) from the HTML document. We
 
 ```{python}
 body_text = []
-for paragraph in soup.find_all(['p']):
+for paragraph in soup.find_all(['p']): #p ist paragraph tag in html
     body_text.append(paragraph.get_text())
 
 print(f'Found {len(body_text)} paragraphs')
@@ -134,7 +134,7 @@ body_text[:5]
 Extracting text like this is useful for text analysis, which we'll cover in the next module. For now, we'll create a dataframe from this data
 
 ```{python}
-ordered_text = pd.DataFrame(body_text)
+ordered_text = pd.DataFrame(body_text) #body_text is a list
 ordered_text.columns = ['paragraph']
 ordered_text['sequence'] = ordered_text.index.to_list()
 
@@ -155,7 +155,7 @@ Next, let's extract all the links on the page. Once again, we can use the `find_
 
 ```{python}
 urls = []
-for link in soup.find_all('a'):
+for link in soup.find_all('a'): #erstmal checken wie viele links da sind, und falls ja (code unten): soll counten
     url = link.get('href')
 
     # check if valid href
@@ -198,7 +198,7 @@ for url in full_urls[:10]:
 Next, we'll filter out any internal page links (e.g., links to sections within the same page) by excluding URLs that start with `#`.
 
 ```{python}
-print(f'{len(full_urls)} URLs before removing internal page links.')
+print(f'{len(full_urls)} URLs before removing internal page links.') #more compact way for writing a for loop; list comprehension nice for iterating over for once or filtering something; but if iterating over a list more than one thing
 full_urls = [url for url in full_urls if not url.startswith('#')]
 print(f'{len(full_urls)} URLs after removing internal page links.')
 ```
@@ -224,13 +224,13 @@ Additionally, we'll include a Boolean column indicating whether the link is exte
 ```{python}
 link_data = []
 
-for link in soup.find_all('a', href=True):
+for link in soup.find_all('a', href=True): #a steht for ankertags in HTML
     if not link['href'].startswith('#'): # ignore internal links
-        text = link.get_text()
-        href = link['href']
+        text = link.get_text() #get text from ankertag
+        href = link['href'] #get link from ankertag
         if href.startswith('/'): # add base URL to relative links
             href = "https://en.wikipedia.org" + href
-            link_data.append((text, href, False))
+            link_data.append((text, href, False)) #=tuple, tuple is like a list, has additional properties
         else:
             link_data.append((text, href, True))
 ```
@@ -270,7 +270,7 @@ def extract_primary_domain(url):
 We can use the `apply()` methods for dataframes to apply our function to each row in the `href` column and then add the extracted primary domain to a new column.
 
 ```{python}
-link_df['primary_domain'] = link_df['href'].apply(extract_primary_domain)
+link_df['primary_domain'] = link_df['href'].apply(extract_primary_domain) #new column
 link_df
 ```
 
@@ -278,10 +278,10 @@ Finally let's count the number of times each primary domain appears and print an
 
 ```{python}
 primary_domain_counts = link_df.value_counts('primary_domain')
-primary_domain_counts = primary_domain_counts.sort_values(ascending=False)
-primary_domain_counts = primary_domain_counts.reset_index()
+primary_domain_counts = primary_domain_counts.sort_values(ascending=False) #sortieren nach Anzahl
+primary_domain_counts = primary_domain_counts.reset_index() #new index nach sorting
 
-primary_domain_counts[primary_domain_counts['count'] >= 2]
+primary_domain_counts[primary_domain_counts['count'] >= 2] #filter dataframe, at least 2 times in count
 ```
 
 ## Extracting Tables
@@ -341,7 +341,7 @@ We can see that some of our dataframes have columns that are `Unnamed`. This gen
 
 ```{python}
 example_df = dfs[0]
-example_df.head()
+example_df.head() #in pandas: methods: head or tale, will default to 5 rows if nothing given ()
 ```
 
 If we just had one table, such as the one we're looking at here, we could easily clean it up by setting the second row as the header and dropping the irrelevant rows.
@@ -397,7 +397,7 @@ for element in soup.find_all(['h3', 'table']):
     # Check if the element is an h3 heading containing the year pattern
     if element.name == 'h3':
         header_text = element.get_text(strip=True)
-        match = year_pattern.search(header_text)
+        match = year_pattern.search(header_text) #does heading type 3 starts with year and report (previously defined)
         if match:
             current_year = match.group(1)  # Track the year
 
@@ -418,7 +418,7 @@ for element in soup.find_all(['h3', 'table']):
         else:
             # If no nested table, add the outer table DataFrame
             outer_table_df['Year'] = current_year
-            tables_with_years.append(outer_table_df)
+            tables_with_years.append(outer_table_df) #whole code block is a bit ineffective but good example to show how to iterate
 
 # Check the number of tables collected
 len(tables_with_years)
@@ -462,7 +462,7 @@ tables_with_years[1].head()
 ```
 
 ```{python}
-tables_with_years[0] == tables_with_years[1]
+tables_with_years[0] == tables_with_years[1] #checken ob die inhalte gleich sind von table1+2
 ```
 
 It looks like we do have duplicated data. There are a few ways we can deal with this, but the easiest way is to leave things as they are and proceed. Once we've got everything in one clean dataframe, we can solve our duplicate data problem by dropping duplicate rows.
@@ -478,8 +478,9 @@ Let's select the dataframes with a "Life evaluation" column.^[Gallupe's **Life e
 
 ```{python}
 new_columns = {
-  "Country": "Country or region",
-  "Score": "Life evaluation"
+  "Country": "Country or region", #rename column names weil es verschiedene gab; alle heißen so wie 2. name nach : sagt 
+  "Score": "Life evaluation",
+  "Happiness": "Life evaluation"
 }
 
 for df in tables_with_years:

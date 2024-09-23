@@ -124,7 +124,7 @@ import src.utils as utils
 We can load our API key(s) using a utility function from icsspy and then initialize the YouTubeAPI class I developed to simplify using multiple API keys at once,^[Follow the instructions above to make sure you have your .env file setup correctly.] which is useful if you need to switch between them due to rate limits.
 
 ```{python}
-KEY_NAMES = ["GESIS", "GESISPY", "INTRO_CSS", "INTROCSS2024", "YouTubeAPILecture", "metascience_golems", "McLevey", "MSGD"]
+KEY_NAMES = ["API_KEY_1"]
 API_KEYS = utils.load_api_key_list(KEY_NAMES)
 YOUTUBE_API = yt.YouTubeAPI(API_KEYS)
 ```
